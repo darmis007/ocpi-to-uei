@@ -7,44 +7,59 @@ charging networks with the Beckn protocol. This library enables OCPI providers t
 easily participate in the Beckn ecosystem.
 
 Features:
-- OCPI location fetching with pagination
+- OCPI location and tariff fetching with pagination
 - Location filtering by proximity
 - Beckn-OCPI protocol transformations
 - Complete search, select, confirm, status, update, and CDR flows
 - Distance calculations using Haversine formula
 - Error handling and logging
+- Configurable tariff decomposition toggle via environment variable
 
 Usage:
     from beckn_ocpi_bridge import BecknOCPIBridge, OCPILocationClient
+    
+    # Set environment variable to control tariff decomposition
+    # TARIFF_DECOMPOSITION_ENABLED=true  # Decompose tariffs (default)
+    # TARIFF_DECOMPOSITION_ENABLED=false # Pass OCPI response as-is
     
     # Initialize the bridge
     ocpi_client = OCPILocationClient(base_url="https://your-ocpi-server.com", token="your-token")
     bridge = BecknOCPIBridge(ocpi_client)
     
-    # Process a Beckn search request
+    # Process a Beckn search request (behavior depends on TARIFF_DECOMPOSITION_ENABLED)
     response = bridge.process_search_request(beckn_search_request)
 
 Author: Beckn-OCPI Bridge Team
 Version: 1.0.0
 """
 
+import dotenv
 import logging
 import math
 import requests
 import json
+import os
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Tuple
 import uuid
 
 logger = logging.getLogger(__name__)
 
+dotenv.load_dotenv()
+
+# Environment variable for tariff decomposition toggle
+# Set to 'true' to decompose tariffs and include complete tariff data in responses
+# Set to 'false' to pass OCPI response as-is with only tariff IDs
+TARIFF_DECOMPOSITION_ENABLED = os.getenv(
+    'TARIFF_DECOMPOSITION_ENABLED', 'true').lower() == 'true'
+
 
 class OCPILocationClient:
     """
-    OCPI Location Client for fetching locations with pagination support.
+    OCPI Location and Tariff Client for fetching locations and tariffs with pagination support.
 
     This client handles communication with OCPI servers to fetch charging locations
-    with automatic pagination support.
+    and tariffs with automatic pagination support.
     """
 
     def __init__(self, base_url: str, token: str):
@@ -113,6 +128,61 @@ class OCPILocationClient:
 
         logger.info(f"Total locations fetched: {len(all_locations)}")
         return all_locations
+
+    def get_all_tariffs(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Fetch all tariffs from OCPI with pagination support.
+
+        Args:
+            limit: Number of tariffs per page (default: 100)
+
+        Returns:
+            List of all tariff dictionaries from OCPI
+
+        Raises:
+            requests.RequestException: If API calls fail
+        """
+        all_tariffs = []
+        offset = 0
+
+        while True:
+            try:
+                url = f"{self.base_url}/ocpi/cpo/2.2.1/tariffs"
+                params = {
+                    'limit': limit,
+                    'offset': offset
+                }
+
+                logger.info(
+                    f"Fetching OCPI tariffs: offset={offset}, limit={limit}")
+                response = requests.get(
+                    url, headers=self.headers, params=params)
+                response.raise_for_status()
+
+                data = response.json()
+                tariffs = data.get('data', [])
+
+                if not tariffs:
+                    logger.info(f"No more tariffs found at offset {offset}")
+                    break
+
+                all_tariffs.extend(tariffs)
+                logger.info(
+                    f"Fetched {len(tariffs)} tariffs, total: {len(all_tariffs)}")
+
+                # Check if we've reached the end
+                if len(tariffs) < limit:
+                    break
+
+                offset += limit
+
+            except requests.RequestException as e:
+                logger.error(
+                    f"Error fetching OCPI tariffs at offset {offset}: {e}")
+                break
+
+        logger.info(f"Total tariffs fetched: {len(all_tariffs)}")
+        return all_tariffs
 
     def get_locations_by_area(self, area_code: str, limit: int = 100) -> List[Dict[str, Any]]:
         """
@@ -258,7 +328,8 @@ class BecknOCPIBridge:
     Main bridge class for transforming between Beckn and OCPI protocols.
 
     This class provides comprehensive transformation methods for all Beckn-OCPI
-    interactions including search, select, confirm, status, update, and CDR flows.
+    interactions including search (with location and tariff data), select, confirm, 
+    status, update, and CDR flows.
     """
 
     def __init__(self, ocpi_client: Optional[OCPILocationClient] = None):
@@ -341,11 +412,28 @@ class BecknOCPIBridge:
                     f"No locations found within {search_radius_km}km radius")
                 return self._create_empty_search_response(beckn_search_request)
 
-            # Step 4: Transform to Beckn on_search response
+            # Step 4: Handle tariffs based on toggle
+            tariff_lookup = {}
+            if TARIFF_DECOMPOSITION_ENABLED:
+                logger.info(
+                    "Tariff decomposition enabled - fetching tariffs...")
+                all_tariffs = self.ocpi_client.get_all_tariffs()
+                if all_tariffs:
+                    for tariff in all_tariffs:
+                        tariff_id = tariff.get('id')
+                        if tariff_id:
+                            tariff_lookup[tariff_id] = tariff
+                    logger.info(
+                        f"Created tariff lookup with {len(tariff_lookup)} tariffs")
+            else:
+                logger.info(
+                    "Tariff decomposition disabled - passing OCPI response as-is")
+
+            # Step 5: Transform to Beckn on_search response
             logger.info(
                 f"Transforming {len(filtered_locations)} locations to Beckn format...")
             beckn_response = self.transform_ocpi_locations_to_beckn_on_search_response(
-                {'data': filtered_locations}, beckn_search_request
+                {'data': filtered_locations}, beckn_search_request, tariff_lookup
             )
 
             logger.info("Search request processed successfully")
@@ -402,14 +490,14 @@ class BecknOCPIBridge:
             logger.error(f"Error filtering locations by proximity: {str(e)}")
             return locations
 
-    def transform_ocpi_locations_to_beckn_on_search_response(self, ocpi_response: Dict[str, Any], beckn_request, tariffs: Optional[Dict[str, Dict[str, str]]] = None) -> Dict[str, Any]:
+    def transform_ocpi_locations_to_beckn_on_search_response(self, ocpi_response: Dict[str, Any], beckn_request, tariffs: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
         Transform OCPI locations response to Beckn on_search response.
 
         Args:
             ocpi_response: OCPI locations response
             beckn_request: Original Beckn search request
-            tariffs: Optional tariff information for pricing
+            tariffs: Optional complete tariff data dictionary (tariff_id -> full tariff object)
 
         Returns:
             Beckn on_search response
@@ -460,15 +548,34 @@ class BecknOCPIBridge:
                     for conn_idx, connector in enumerate(connectors):
                         item_id = f"item_{ocpi_loc['id']}_evse_{evse['uid']}_conn_{connector['id']}"
                         price = {"currency": "INR", "value": "0"}
-                        if tariffs and "tariff_ids" in connector and connector["tariff_ids"]:
+                        if TARIFF_DECOMPOSITION_ENABLED and tariffs and "tariff_ids" in connector and connector["tariff_ids"]:
                             tariff_id = connector["tariff_ids"][0]
                             tariff = tariffs.get(tariff_id)
                             if tariff:
+                                # Extract price from tariff elements
+                                price_value = "0"
+                                if tariff.get("elements") and len(tariff["elements"]) > 0:
+                                    element = tariff["elements"][0]
+                                    if element.get("price_components") and len(element["price_components"]) > 0:
+                                        price_component = element["price_components"][0]
+                                        price_value = str(
+                                            price_component.get("price", 0))
+
                                 price = {
                                     "currency": tariff.get("currency", "INR"),
-                                    "value": tariff.get("price", "0"),
-                                    "description": tariff.get("desc", "")
+                                    "value": price_value,
+                                    "description": f"Tariff ID: {tariff_id}",
+                                    "tariff_data": tariff  # Include complete tariff data
                                 }
+                        elif not TARIFF_DECOMPOSITION_ENABLED and "tariff_ids" in connector and connector["tariff_ids"]:
+                            # When tariff decomposition is disabled, include tariff IDs as-is
+                            price = {
+                                "currency": "INR",
+                                "value": "0",
+                                "description": f"Tariff IDs: {connector['tariff_ids']}",
+                                # Include original tariff IDs
+                                "tariff_ids": connector["tariff_ids"]
+                            }
                         beckn_item = {
                             "id": item_id,
                             "descriptor": {
