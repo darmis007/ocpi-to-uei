@@ -1,0 +1,49 @@
+{
+  "context": {
+    "domain": "ONDC:RET10",
+    "action": "select",
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "std:080"
+      }
+    },
+    "version": "1.1.0",
+    "bap_id": "sample_bap",
+    "bap_uri": "https://sample-bap.com",
+    "bpp_id": "THP",
+    "bpp_uri": "https://api.example-bpp.com/pilot/bpp/",
+    "transaction_id": "fe04954d-0f42-455a-afe0-d941f8781bc2",
+    "message_id": "4f47de3a-fa9a-4a7d-8ea1-0c2cc0846192",
+    "timestamp": "2025-08-09T16:27:50.384726Z"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": "THP"
+      },
+      "items": [
+        {
+          "id": "dz2SXdIDJDfNjsPfw_15000",
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "4",
+                "unit": "kWh"
+              }
+            }
+          },
+          "add_ons": []
+        }
+      ],
+      "fulfillments": [
+        {
+          "id": "v5bXyAlSr8G6lvUAN1A_1_1",
+          "type": "charging"
+        }
+      ]
+    }
+  }
+}

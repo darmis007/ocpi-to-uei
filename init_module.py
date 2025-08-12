@@ -1,43 +1,44 @@
-import logging
-from beckn_modules import BecknSelectRequest
-from ocpi_modules import OCPIClient
+import json
+import os
+from typing import Any, Dict
+
+from dotenv import load_dotenv
+
 from beckn_ocpi_bridge import BecknOCPIBridge
 
-logger = logging.getLogger(__name__)
+# Load environment variables
+load_dotenv()
 
 
-def handle_beckn_select_request(beckn_select_payload: dict, ocpi_base_url: str, ocpi_token: str, mock_mode: bool = False):
-    # Parse Beckn select request
-    beckn_select_request = BecknSelectRequest(**beckn_select_payload)
+def load_init_request(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    # Initialize OCPI client and bridge
-    ocpi_client = OCPIClient(base_url=ocpi_base_url,
-                             token=ocpi_token, mock_mode=mock_mode)
-    bridge = BecknOCPIBridge(ocpi_client)
 
-    # Transform Beckn select to OCPI session request
-    ocpi_session_request = bridge.transform_beckn_select_to_ocpi_session(
-        beckn_select_request)
+def main() -> None:
 
-    # Initiate OCPI session
-    ocpi_session_response = ocpi_client.initiate_session(
-        **ocpi_session_request)
-
-    # Convert OCPI session response to Beckn on_select response
-    beckn_on_select_response = bridge.transform_ocpi_session_to_beckn_on_select(
-        ocpi_session_response, beckn_select_request
+    init_request_path = os.getenv(
+        "INIT_REQUEST_PATH", os.path.join(os.path.dirname(
+            __file__), "requests", "init_request.json")
     )
-    return beckn_on_select_response
 
+    # Load request
+    beckn_init_request = load_init_request(init_request_path)
 
-# Example usage:
-if __name__ == "__main__":
-    import json
-    # Example Beckn select request payload (replace with actual payload)
-    with open("sample_beckn_select.json") as f:
-        beckn_select_payload = json.load(f)
-    ocpi_base_url = "https://ocpi.example.com"
-    ocpi_token = "your-ocpi-token"
-    response = handle_beckn_select_request(
-        beckn_select_payload, ocpi_base_url, ocpi_token, mock_mode=True)
+    # Bridge setup (OCPI client is ensured internally from env)
+    bridge = BecknOCPIBridge()
+
+    # Process and print response
+    response = bridge.process_init_request(beckn_init_request)
     print(json.dumps(response, indent=2))
+
+    # Save to responses/on_init.json
+    responses_dir = os.path.join(os.path.dirname(__file__), "responses")
+    os.makedirs(responses_dir, exist_ok=True)
+    out_path = os.path.join(responses_dir, "on_init.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(response, f, indent=2, ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,157 +1,158 @@
-import json
-import logging
-from typing import Dict,Any
-from datetime import datetime, timezone
-import uuid
-from enum import Enum
-from beckn_ocpi_bridge import BecknOCPIBridge
-from ocpi_modules import  OCPIClient
-from beckn_modules import BecknSearchRequest
+"""
+End-to-End Search Module for Beckn-OCPI Bridge
+==============================================
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+This module demonstrates the complete flow from Beckn search request to filtered OCPI locations
+and back to Beckn on_search response using the BecknOCPIBridge.
+
+This module is now simplified and uses the comprehensive BecknOCPIBridge class.
+
+Author: Beckn-OCPI Bridge Team
+"""
+
+import logging
+import json
+import os
+from dotenv import load_dotenv
+
+from beckn_modules import BecknSearchRequest
+from beckn_ocpi_bridge import BecknOCPIBridge, OCPILocationClient, create_sample_beckn_search_request
+
+# Load environment variables from .env file
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 
-def process_beckn_search_request(beckn_request_data: Dict[str, Any], 
-                               ocpi_base_url: str, 
-                               ocpi_token: str,
-                               mock_mode: bool = False) -> Dict[str, Any]:
-    """
-    Main function to process Beckn search request and return response
-    
-    Args:
-        beckn_request_data: Raw Beckn search request JSON
-        ocpi_base_url: OCPI API base URL
-        ocpi_token: OCPI API authentication token
-        mock_mode: If True, use mock OCPI response instead of calling real API
-        
-    Returns:
-        Beckn search response
-    """
-    try:
-        # Parse Beckn request
-        beckn_request = BecknSearchRequest(
-            context=beckn_request_data['context'],
-            message=beckn_request_data['message']
-        )
-        
-        logger.info(f"Processing Beckn search request: {beckn_request.context.get('message_id')}")
-        
-        # Initialize OCPI client with mock mode
-        ocpi_client = OCPIClient(ocpi_base_url, ocpi_token, mock_mode=mock_mode)
-        
-        # Initialize bridge
-        bridge = BecknOCPIBridge(ocpi_client)
-        
-        # Transform Beckn request to OCPI query
-        ocpi_query_params = bridge.transform_beckn_to_ocpi_query(beckn_request)
-        
-        # Get tariffs (mock or real)
-        tariffs = {}
-        if mock_mode:
-            tariffs = ocpi_client._get_mock_tariffs()
-        # Get locations from OCPI (or mock)
-        ocpi_response = ocpi_client.get_locations(**ocpi_query_params)
-        logger.info(f"Received {len(ocpi_response.get('data', []))} locations from OCPI")
-        # Transform OCPI response to Beckn format, passing tariffs
-        beckn_response = bridge.transform_ocpi_to_beckn_response(ocpi_response, beckn_request, tariffs)
-        
-        logger.info(f"Generated Beckn response with {len(beckn_response['message']['catalog'].get('items', []))} items")
-        
-        return beckn_response
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        logger.error(f"Error processing Beckn search request: {str(e)}")
-        
-        # Safely extract context information for error response
-        context_info = {}
-        if isinstance(beckn_request_data, dict) and 'context' in beckn_request_data:
-            context_info = beckn_request_data['context']
-        elif isinstance(beckn_request_data, dict):
-            # Try to extract basic context info if available
-            context_info = {
-                k: v for k, v in beckn_request_data.items() 
-                if k in ['domain', 'country', 'city', 'bap_id', 'transaction_id']
-            }
-        
-        # Return error response in Beckn format
-        error_response = {
-            "context": {
-                **context_info,
-                "action": "on_search",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "message_id": str(uuid.uuid4())
-            },
-            "error": {
-                "type": "INTERNAL_ERROR",
-                "code": "500",
-                "path": "process_search",
-                "message": str(e)
-            }
-        }
-        return error_response
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Sample Beckn search request
-    sample_beckn_request = {
-        "context": {
-            "domain": "mobility:ev_charging",
-            "country": "IND",
-            "city": "BLR",
-            "action": "search",
-            "core_version": "1.1.0",
-            "bap_id": "example_bap.com",
-            "bap_uri": "https://example_bap.com/",
-            "transaction_id": str(uuid.uuid4()),
-            "message_id": str(uuid.uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "ttl": "PT30S"
-        },
-        "message": {
-            "intent": {
-                "fulfillment": {
-                    "start": {
-                        "location": {
-                            "gps": "12.9716,77.5946",  # Bangalore coordinates
-                            "address": "Bangalore, Karnataka, India"
-                        },
-                        "time": {
-                            "range": {
-                                "start": datetime.now(timezone.utc).isoformat(),
-                                "end": (datetime.now(timezone.utc).replace(hour=23, minute=59, second=59)).isoformat()
-                            }
-                        }
-                    }
-                },
-                "item": {
-                    "category": {
-                        "id": "ev_charging"
-                    }
-                }
-            }
-        }
-    }
-    
-    # Configuration (replace with actual OCPI endpoint details)
-    OCPI_BASE_URL = "https://example-cpo.com/ocpi"  # Fixed URL
-    OCPI_TOKEN = "your_ocpi_token_here"
-    MOCK_MODE = True  # Set to False to use real OCPI API
-    
+class SearchHandler:
+    """Main handler for end-to-end search flow using BecknOCPIBridge"""
+
+    def __init__(self, ocpi_base_url: str, ocpi_token: str):
+        """
+        Initialize SearchHandler with OCPI configuration.
+
+        Args:
+            ocpi_base_url: Base URL of the OCPI server
+            ocpi_token: Authentication token for OCPI API
+        """
+        self.ocpi_client = OCPILocationClient(ocpi_base_url, ocpi_token)
+        self.bridge = BecknOCPIBridge(self.ocpi_client)
+
+    def process_search_request(
+        self,
+        beckn_search_request: BecknSearchRequest,
+        search_radius_km: float = 10.0
+    ) -> dict:
+        """
+        Process Beckn search request end-to-end using the bridge.
+
+        Args:
+            beckn_search_request: Parsed Beckn search request
+            search_radius_km: Search radius in kilometers
+
+        Returns:
+            Beckn on_search response
+        """
+        try:
+            logger.info("Processing search request using BecknOCPIBridge...")
+            response = self.bridge.process_search_request(
+                beckn_search_request, search_radius_km
+            )
+            logger.info("Search request processed successfully")
+            return response
+        except Exception as e:
+            logger.error(f"Error processing search request: {e}")
+            raise
+
+
+def main():
+    """Main function for testing the end-to-end search flow"""
+    # Configuration from environment variables
+    OCPI_BASE_URL = os.getenv("OCPI_BASE_URL")
+    OCPI_TOKEN = os.getenv("OCPI_TOKEN")
+
+    # Validate required environment variables
+    if not OCPI_BASE_URL or not OCPI_TOKEN:
+        raise ValueError(
+            "Missing required environment variables: OCPI_BASE_URL and OCPI_TOKEN must be set in .env file")
+
+    # Create sample search request (Delhi coordinates)
+    LAT = 28.5502
+    LONG = 77.2583
+    sample_request = create_sample_beckn_search_request(
+        latitude=LAT,
+        longitude=LONG,
+        radius_km=5.0
+    )
+
+    # Initialize handler
+    handler = SearchHandler(OCPI_BASE_URL, OCPI_TOKEN)
+
+    # Process search request
+    print("Processing Beckn search request...")
+    print(f"Search location: {LAT}, {LONG}")
+    print(f"Search radius: 5.0 km")
+    print("-" * 50)
+
     try:
-        # Process the request
-        response = process_beckn_search_request(
-            sample_beckn_request, 
-            OCPI_BASE_URL, 
-            OCPI_TOKEN,
-            mock_mode=MOCK_MODE
-        )
-        
-        # Pretty print the response
-        print("Beckn Search Response:")
-        print(json.dumps(response, indent=2))
-        
+        response = handler.process_search_request(
+            sample_request, search_radius_km=5.0)
+
+        # Save response to responses/ folder
+        response_filename = f"responses/search_response.json"
+
+        # Ensure responses directory exists
+        os.makedirs("responses", exist_ok=True)
+
+        # Save response to file
+        with open(response_filename, 'w', encoding='utf-8') as f:
+            json.dump(response, f, indent=2, ensure_ascii=False)
+
+        print(f"Response saved to: {response_filename}")
+
+        # Print results
+        catalog = response.get('message', {}).get('catalog', {})
+        locations = catalog.get('locations', [])
+        items = catalog.get('items', [])
+
+        print("Beckn Response:")
+        print(json.dumps(response, indent=2, ensure_ascii=False))
+        print(f"Search completed successfully!")
+        print(f"Locations found: {len(locations)}")
+        print(f"Charging connectors found: {len(items)}")
+        print("-" * 50)
+
+        # Show first few results
+        if locations:
+            print("Top 3 nearest locations:")
+            for i, loc in enumerate(locations[:3], 1):
+                print(f"{i}. {loc.get('descriptor', {}).get('name', 'Unknown')}")
+                print(
+                    f"   Address: {loc.get('address', {}).get('full', 'Unknown')}")
+                print(f"   Distance: {loc.get('distance', 'Unknown')}")
+                print()
+
+        if items:
+            print("Available charging connectors:")
+            for i, item in enumerate(items[:5], 1):
+                desc = item.get('descriptor', {})
+                tags = item.get('tags', {})
+                print(f"{i}. {desc.get('name', 'Unknown')}")
+                print(f"   Power: {tags.get('max_power', 'Unknown')}kW")
+                print(f"   Type: {tags.get('connector_type', 'Unknown')}")
+                print(f"   Status: {tags.get('availability', 'Unknown')}")
+                print()
+
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"Error: {e}")
+        logger.error(f"Error in main: {e}")
+
+
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
+    main()

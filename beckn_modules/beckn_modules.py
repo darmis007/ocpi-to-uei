@@ -92,6 +92,25 @@ class BecknSelectRequest:
 
 
 @dataclass
+class BecknOnSelectResponse:
+    """Beckn on_select response structure"""
+    context: Dict[str, Any]
+    message: Dict[str, Any]
+
+    def get_order_details(self) -> Optional[Dict[str, Any]]:
+        """Extract order details from on_select response"""
+        return self.message.get("order", {})
+
+    def get_quote_details(self) -> Optional[Dict[str, Any]]:
+        """Extract quote details from on_select response"""
+        return self.message.get("order", {}).get("quote", {})
+
+    def get_payment_details(self) -> Optional[Dict[str, Any]]:
+        """Extract payment details from on_select response"""
+        return self.message.get("order", {}).get("payment", {})
+
+
+@dataclass
 class BecknConfirmRequest:
     """Beckn confirm request structure"""
     context: Dict[str, Any]

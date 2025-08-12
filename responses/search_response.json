@@ -1,0 +1,518 @@
+{
+  "context": {
+    "domain": "ONDC:RET10",
+    "country": "IND",
+    "city": "std:080",
+    "action": "on_search",
+    "core_version": "1.2.0",
+    "bap_id": "sample_bap",
+    "bap_uri": "https://sample-bap.com",
+    "transaction_id": "e7e587d0-937b-458f-86ff-a2cbd7ad4cd4",
+    "message_id": "e0d3184f-5a07-4b60-b7e6-01a2aace2ce8",
+    "timestamp": "2025-08-09T18:24:26.497849+00:00",
+    "ttl": "PT30S",
+    "bpp_id": "THP"
+  },
+  "message": {
+    "catalog": {
+      "providers": [
+        {
+          "id": "THP",
+          "descriptor": {
+            "name": "Thunder Plus",
+            "short_desc": "Electric Vehicle Charging Stations",
+            "long_desc": "Network of EV charging stations via OCPI integration"
+          },
+          "locations": [
+            {
+              "id": "HrKNUxJ9Ara6AL6PaUlF",
+              "descriptor": {
+                "name": "Thunder Test CS",
+                "short_desc": "Charging station at Test",
+                "long_desc": "EV charging location operated by Thunder Plus"
+              },
+              "gps": "28.5503906,77.2584309",
+              "address": {
+                "full": "Test",
+                "city": "Delhi",
+                "state": "Delhi",
+                "country": "IND",
+                "area_code": ""
+              },
+              "distance": "0.02 km"
+            }
+          ],
+          "items": [
+            {
+              "id": "dz2SXdIDJDfNjsPfw_15000",
+              "descriptor": {
+                "code": "energy"
+              },
+              "price": {
+                "currency": "INR",
+                "value": "12",
+                "description": "Tariff ID: dz2SXdIDJDfNjsPfw",
+                "tariff_data": {
+                  "country_code": "IN",
+                  "party_id": "THP",
+                  "id": "dz2SXdIDJDfNjsPfw",
+                  "currency": "INR",
+                  "elements": [
+                    {
+                      "price_components": [
+                        {
+                          "type": "ENERGY",
+                          "price": 12,
+                          "step_size": 1,
+                          "vat": 5
+                        }
+                      ]
+                    }
+                  ],
+                  "last_updated": "2024-12-10T06:53:43.315Z",
+                  "start_date_time": "2024-05-20T03:30:43.825Z",
+                  "end_date_time": "2024-05-20T06:30:43.825Z"
+                }
+              },
+              "quantity": {
+                "available": {
+                  "measure": {
+                    "unit": "Wh",
+                    "value": "15000"
+                  }
+                }
+              },
+              "category_ids": [
+                "ev_charging"
+              ],
+              "location_ids": [
+                "HrKNUxJ9Ara6AL6PaUlF"
+              ],
+              "fulfillment_ids": [
+                "v5bXyAlSr8G6lvUAN1A_1_1"
+              ]
+            },
+            {
+              "id": "dz2SXdIDJDfNjsPfw_20000",
+              "descriptor": {
+                "code": "energy"
+              },
+              "price": {
+                "currency": "INR",
+                "value": "12",
+                "description": "Tariff ID: dz2SXdIDJDfNjsPfw",
+                "tariff_data": {
+                  "country_code": "IN",
+                  "party_id": "THP",
+                  "id": "dz2SXdIDJDfNjsPfw",
+                  "currency": "INR",
+                  "elements": [
+                    {
+                      "price_components": [
+                        {
+                          "type": "ENERGY",
+                          "price": 12,
+                          "step_size": 1,
+                          "vat": 5
+                        }
+                      ]
+                    }
+                  ],
+                  "last_updated": "2024-12-10T06:53:43.315Z",
+                  "start_date_time": "2024-05-20T03:30:43.825Z",
+                  "end_date_time": "2024-05-20T06:30:43.825Z"
+                }
+              },
+              "quantity": {
+                "available": {
+                  "measure": {
+                    "unit": "Wh",
+                    "value": "20000"
+                  }
+                }
+              },
+              "category_ids": [
+                "ev_charging"
+              ],
+              "location_ids": [
+                "HrKNUxJ9Ara6AL6PaUlF"
+              ],
+              "fulfillment_ids": [
+                "v5bXyAlSr8G6lvUAN1A_2_1"
+              ]
+            },
+            {
+              "id": "ajcx2DQt07uERmEqprnQ_3300",
+              "descriptor": {
+                "code": "energy"
+              },
+              "price": {
+                "currency": "INR",
+                "value": "10",
+                "description": "Tariff ID: ajcx2DQt07uERmEqprnQ",
+                "tariff_data": {
+                  "country_code": "IN",
+                  "party_id": "THP",
+                  "id": "ajcx2DQt07uERmEqprnQ",
+                  "currency": "INR",
+                  "elements": [
+                    {
+                      "price_components": [
+                        {
+                          "type": "ENERGY",
+                          "price": 10,
+                          "step_size": 1,
+                          "vat": 18
+                        }
+                      ]
+                    }
+                  ],
+                  "last_updated": "2024-12-09T08:43:21.913Z",
+                  "start_date_time": "2024-01-17T07:25:05.990Z",
+                  "end_date_time": "2024-01-17T07:25:05.990Z"
+                }
+              },
+              "quantity": {
+                "available": {
+                  "measure": {
+                    "unit": "Wh",
+                    "value": "3300"
+                  }
+                }
+              },
+              "category_ids": [
+                "ev_charging"
+              ],
+              "location_ids": [
+                "HrKNUxJ9Ara6AL6PaUlF"
+              ],
+              "fulfillment_ids": [
+                "af7c3MVQklXwBshPj8_2_1",
+                "af7c3MVQklXwBshPj8_1_1",
+                "tLAj42jrr0dYtDqdqTDK_2_1"
+              ]
+            },
+            {
+              "id": "ajcx2DQt07uERmEqprnQ_10000",
+              "descriptor": {
+                "code": "energy"
+              },
+              "price": {
+                "currency": "INR",
+                "value": "10",
+                "description": "Tariff ID: ajcx2DQt07uERmEqprnQ",
+                "tariff_data": {
+                  "country_code": "IN",
+                  "party_id": "THP",
+                  "id": "ajcx2DQt07uERmEqprnQ",
+                  "currency": "INR",
+                  "elements": [
+                    {
+                      "price_components": [
+                        {
+                          "type": "ENERGY",
+                          "price": 10,
+                          "step_size": 1,
+                          "vat": 18
+                        }
+                      ]
+                    }
+                  ],
+                  "last_updated": "2024-12-09T08:43:21.913Z",
+                  "start_date_time": "2024-01-17T07:25:05.990Z",
+                  "end_date_time": "2024-01-17T07:25:05.990Z"
+                }
+              },
+              "quantity": {
+                "available": {
+                  "measure": {
+                    "unit": "Wh",
+                    "value": "10000"
+                  }
+                }
+              },
+              "category_ids": [
+                "ev_charging"
+              ],
+              "location_ids": [
+                "HrKNUxJ9Ara6AL6PaUlF"
+              ],
+              "fulfillment_ids": [
+                "tLAj42jrr0dYtDqdqTDK_1_1"
+              ]
+            }
+          ],
+          "fulfillments": [
+            {
+              "id": "v5bXyAlSr8G6lvUAN1A_1_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497689+00:00",
+                    "end": "2025-08-09T23:59:59.497703+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "v5bXyAlSr8G6lvUAN1A_1",
+                "connector_type": "IEC_62196_T2",
+                "power_type": "AC_3_PHASE",
+                "max_power": "15000",
+                "connector_format": "CABLE",
+                "availability": "UNKNOWN",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            },
+            {
+              "id": "v5bXyAlSr8G6lvUAN1A_2_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497729+00:00",
+                    "end": "2025-08-09T23:59:59.497733+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "v5bXyAlSr8G6lvUAN1A_2",
+                "connector_type": "IEC_62196_T2",
+                "power_type": "AC_3_PHASE",
+                "max_power": "20000",
+                "connector_format": "CABLE",
+                "availability": "UNKNOWN",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            },
+            {
+              "id": "af7c3MVQklXwBshPj8_2_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497749+00:00",
+                    "end": "2025-08-09T23:59:59.497752+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "af7c3MVQklXwBshPj8_2",
+                "connector_type": "IEC_60309_2_three_16",
+                "power_type": "AC_1_PHASE",
+                "max_power": "3300",
+                "connector_format": "SOCKET",
+                "availability": "UNKNOWN",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            },
+            {
+              "id": "af7c3MVQklXwBshPj8_1_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497766+00:00",
+                    "end": "2025-08-09T23:59:59.497769+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "af7c3MVQklXwBshPj8_1",
+                "connector_type": "DOMESTIC_D",
+                "power_type": "AC_1_PHASE",
+                "max_power": "3300",
+                "connector_format": "SOCKET",
+                "availability": "UNKNOWN",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            },
+            {
+              "id": "tLAj42jrr0dYtDqdqTDK_1_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497804+00:00",
+                    "end": "2025-08-09T23:59:59.497807+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "tLAj42jrr0dYtDqdqTDK_1",
+                "connector_type": "IEC_62196_T2",
+                "power_type": "AC_3_PHASE",
+                "max_power": "10000",
+                "connector_format": "SOCKET",
+                "availability": "AVAILABLE",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            },
+            {
+              "id": "tLAj42jrr0dYtDqdqTDK_2_1",
+              "type": "charging",
+              "stops": {
+                "location": {
+                  "id": "HrKNUxJ9Ara6AL6PaUlF",
+                  "descriptor": {
+                    "name": "Thunder Test CS",
+                    "short_desc": "Charging station at Test",
+                    "long_desc": "EV charging location operated by Thunder Plus"
+                  },
+                  "gps": "28.5503906,77.2584309",
+                  "address": {
+                    "full": "Test",
+                    "city": "Delhi",
+                    "state": "Delhi",
+                    "country": "IND",
+                    "area_code": ""
+                  },
+                  "distance": "0.02 km"
+                },
+                "time": {
+                  "label": "available",
+                  "range": {
+                    "start": "2025-08-09T18:24:26.497827+00:00",
+                    "end": "2025-08-09T23:59:59.497830+00:00"
+                  }
+                }
+              },
+              "tags": {
+                "evse_uid": "tLAj42jrr0dYtDqdqTDK_2",
+                "connector_type": "DOMESTIC_D",
+                "power_type": "AC_1_PHASE",
+                "max_power": "3300",
+                "connector_format": "SOCKET",
+                "availability": "AVAILABLE",
+                "facilities": [],
+                "opening_times": {
+                  "twentyfourseven": true
+                },
+                "operator": "Thunder Plus"
+              }
+            }
+          ],
+          "categories": [
+            {
+              "id": "ev_charging",
+              "descriptor": {
+                "name": "EV Charging",
+                "short_desc": "Electric Vehicle Charging Services"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
